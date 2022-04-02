@@ -3,7 +3,7 @@
 This repository includes [Advent of Code 2021](https://adventofcode.com/2021)
 exercices solved using C.
 
-Exercices are labeled following the pattern `<day>-<part>`.
+Exercises are labeled following the pattern `<day>-<part>`.
 
 To run, for instance, Part II of Day 5:
 
