@@ -3,9 +3,6 @@
 This repository includes [Advent of Code 2021](https://adventofcode.com/2021)
 exercices solved using C.
 
-Exercise descriptons are available at [./descs](./descs) in case the official
-website disappears.
-
 Exercises are labeled following the pattern `<day>-<part>`.
 
 To run, for instance, Part II of Day 5:
