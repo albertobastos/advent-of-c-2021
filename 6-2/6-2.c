@@ -28,11 +28,11 @@ int main(int argc, char** args) {
 
   initial_state(fp, steps, &count);
   for (i=0; i<DAYS; i++) {
-    print_state(i, steps, count);
+    //print_state(i, steps, count);
     step(steps, &count);
   }
 
-  printf("Answer: %d\n", count);
+  printf("Answer: %llu\n", count);
 
   fclose(fp);
   exit(0);
@@ -43,7 +43,7 @@ void initial_state(FILE* in, timer steps[], timer* count) {
   for (i=0; i<MAX_TIMER; i++)
     steps[i] = 0;
 
-  *count = 0;
+  *count = 0ULL;
   while (fscanf(in, "%d,", &i) > 0) {
     steps[i]++;
     (*count)++;
@@ -62,8 +62,8 @@ void step(timer steps[], timer* count) {
 
 void print_state(int days, timer steps[], timer count) {
   int i;
-  printf("<%d> Count: %d, Steps: [", days, count);
+  printf("<%d> Count: %llu, Steps: [", days, count);
   for (i=0; i<MAX_TIMER; i++)
-    printf(" %d ", steps[i]);
+    printf(" %llu ", steps[i]);
   printf("]\n");
 }
