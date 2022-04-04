@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Version of 5-2 using a binary heap instead a full grid,
+// Version of 5-2 using a binary heap instead of a full grid,
 // which leads to a smaller memory footprint
 
 struct Node {
