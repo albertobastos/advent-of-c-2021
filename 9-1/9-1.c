@@ -44,7 +44,7 @@ void read_file(FILE* in, short* grid) {
 }
 
 short get(short* grid, int row, int col) {
-  if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return 999;
+  if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return 9;
   return grid[row*COLS+col];
 }
 
