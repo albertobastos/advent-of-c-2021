@@ -1,3 +1,4 @@
 **/*.o
 ./push.sh
 ./create.sh
+./copy.sh
