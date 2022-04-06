@@ -1,2 +1,3 @@
 **/*.o
 ./push.sh
+./create.sh
