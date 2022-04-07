@@ -3,14 +3,16 @@
 
 #define MAX_LINE 1024
 
+typedef unsigned long long Score;
+
 struct ScoreReg {
-  unsigned int score;
+  Score score;
   struct ScoreReg* next;
 };
 typedef struct ScoreReg ScoreReg;
 
 ScoreReg* add_autocomplete_score(ScoreReg*, char*);
-int choose_middle_score(ScoreReg*);
+Score choose_middle_score(ScoreReg*);
 
 int main(int argc, char** args) {
   FILE *fp = NULL;
@@ -31,7 +33,7 @@ int main(int argc, char** args) {
   while (fgets(line, MAX_LINE, fp))
     scores = add_autocomplete_score(scores, line);
 
-  printf("Answer: %d\n", choose_middle_score(scores));
+  printf("Answer: %llu\n", choose_middle_score(scores));
 
   fclose(fp);
   exit(0);
@@ -64,7 +66,7 @@ char pop(Stack* s) {
   return elem;
 }
 
-ScoreReg* insert_ordered(ScoreReg* scores, int score) {
+ScoreReg* insert_ordered(ScoreReg* scores, Score score) {
   ScoreReg* sr = malloc(sizeof(ScoreReg));
   sr->score = score;
   if (scores == NULL) {
@@ -115,8 +117,7 @@ ScoreReg* add_autocomplete_score(ScoreReg* scores, char* in) {
     }
   }
 
-  // autocompleting mode, calc autocomplete score and add it
-  long score = 0;
+  Score score = 0;
   while (st.top != NULL) {
     c = pop(&st);
     score *= 5;
@@ -146,15 +147,14 @@ ScoreReg* add_autocomplete_score(ScoreReg* scores, char* in) {
 int count_scores(ScoreReg* scores) {
   int count = 0;
   for(; scores != NULL; scores=scores->next) {
-    //printf("%2.i :: %u\n", count+1, scores->score);
+    //printf("%2.i :: %llu\n", count+1, scores->score);
     count++;
   }
   return count;
 }
 
-int choose_middle_score(ScoreReg* scores) {
+unsigned long long choose_middle_score(ScoreReg* scores) {
   int middle = count_scores(scores)/2 + 1;
-  //printf("middle: %d\n", middle);
   int i;
   for (i=1; i<middle; i++)
     scores=scores->next;
