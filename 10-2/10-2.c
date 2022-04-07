@@ -146,7 +146,7 @@ ScoreReg* add_autocomplete_score(ScoreReg* scores, char* in) {
 int count_scores(ScoreReg* scores) {
   int count = 0;
   for(; scores != NULL; scores=scores->next) {
-    printf("%2.i :: %u\n", count+1, scores->score);
+    //printf("%2.i :: %u\n", count+1, scores->score);
     count++;
   }
   return count;
@@ -154,7 +154,7 @@ int count_scores(ScoreReg* scores) {
 
 int choose_middle_score(ScoreReg* scores) {
   int middle = count_scores(scores)/2 + 1;
-  printf("middle: %d\n", middle);
+  //printf("middle: %d\n", middle);
   int i;
   for (i=1; i<middle; i++)
     scores=scores->next;
