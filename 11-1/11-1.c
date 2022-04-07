@@ -5,7 +5,7 @@
 #define COLS 10
 #define FLASHED -1
 
-int* cell(int*, int, int);
+int idx(int, int);
 void read_grid(FILE*, int*);
 void do_step(int*, int*);
 void print_grid(int*);
@@ -20,6 +20,7 @@ int main(int argc, char** args) {
     exit(1);
   }
 
+  //args[1] = "11-1/sample.in"; // expected = 1656
   if ((fp = fopen(args[1], "r")) == NULL) {
     printf("Cannot open file: %s\n", args[1]);
     exit(1);
@@ -29,11 +30,8 @@ int main(int argc, char** args) {
 
   flashes = 0;
   int step;
-  print_grid(grid);
-  for (step = 1; step<=100; step++) {
+  for (step=1; step<=100; step++) {
     do_step(grid, &flashes);
-    printf("\n");
-    print_grid(grid);
   }
 
   printf("Answer: %d\n", flashes);
@@ -42,49 +40,12 @@ int main(int argc, char** args) {
   exit(0);
 }
 
-int* cell(int* grid, int x, int y) {
-  if (x < 0 || x > ROWS || y < 0 || y > COLS) return NULL;
-  return &grid[x*COLS+y];
+int is_valid(int x, int y) {
+  return x >= 0 && x < ROWS && y >= 0 && y < COLS;
 }
 
-void set(int* grid, int x, int y, int val) {
-  int* c = cell(grid, x, y);
-  if (c != NULL) *c = val;
-}
-
-int get(int* grid, int x, int y) {
-  int* c = cell(grid, x, y);
-  return c != NULL ? *c : -1;
-}
-
-void inc(int* grid, int x, int y) {
-  int* c = cell(grid, x, y);
-  if (c != NULL && *c != FLASHED) (*c)++;
-}
-
-void flash(int* grid, int x, int y) {
-  int* c = cell(grid, x, y);
-  if (c != NULL) {
-    *c = FLASHED;
-    inc(grid, x-1, y-1);
-    inc(grid, x  , y-1);
-    inc(grid, x+1, y-1);
-    inc(grid, x-1, y  );
-    inc(grid, x+1, y  );
-    inc(grid, x-1, y+1);
-    inc(grid, x  , y+1);
-    inc(grid, x+1, y+1);    
-  }
-}
-
-int needs_to_flash(int* grid, int x, int y) {
-  int* c = cell(grid, x, y);
-  return c != NULL && *c != FLASHED && *c > 9;
-}
-
-int restore(int* grid, int x, int y) {
-  int* c = cell(grid, x, y);
-  if (c != NULL && *c == FLASHED) *c = 0;
+int idx(int x, int y) {
+  return x*COLS+y;
 }
 
 void read_grid(FILE* in, int* grid) {
@@ -94,7 +55,7 @@ void read_grid(FILE* in, int* grid) {
   for (x=0; x<ROWS; x++) {
     fscanf(in, "%s", line);
     for (y=0; y<COLS; y++) {
-      set(grid, x, y, line[y]-'0');
+      grid[idx(x,y)] = line[y]-'0';
     }
   }
 }
@@ -104,10 +65,38 @@ void print_grid(int* grid) {
   int y;
   for (x=0; x<ROWS; x++) {
     for (y=0; y<COLS; y++) {
-      printf(" %d", get(grid, x, y));
+      printf("%d", grid[idx(x,y)]);
     }
     printf("\n");
   }
+  printf("\n");
+}
+
+void maybe_inc(int* grid, int x, int y) {
+  if (is_valid(x, y) && grid[idx(x, y)] != FLASHED)
+    grid[idx(x,y)]++;
+}
+
+int maybe_flash(int* grid, int x, int y) {
+  int i = idx(x,y);
+  if (grid[i] > 9) {
+    grid[i] = FLASHED;
+    maybe_inc(grid, x-1, y-1);
+    maybe_inc(grid, x-1, y);
+    maybe_inc(grid, x-1, y+1);
+    maybe_inc(grid, x, y-1);
+    maybe_inc(grid, x, y+1);
+    maybe_inc(grid, x+1, y-1);
+    maybe_inc(grid, x+1, y);
+    maybe_inc(grid, x+1, y+1);
+    return 1;
+  }
+  return 0;
+}
+
+void maybe_restore(int* grid, int x, int y) {
+  int i = idx(x,y);
+  if (grid[i] == FLASHED) grid[i] = 0;
 }
 
 void do_step(int* grid, int* flashes) {
@@ -117,26 +106,26 @@ void do_step(int* grid, int* flashes) {
 
   for (x=0; x<ROWS; x++) {
     for (y=0; y<COLS; y++) {
-      inc(grid, x, y);
+      maybe_inc(grid, x, y);
     }
   }
 
+  int any_flash;
   do {
-    flashed = 0;
+    any_flash = 0;
     for (x=0; x<ROWS; x++) {
       for (y=0; y<COLS; y++) {
-        if (needs_to_flash(grid, x, y)) {
-          flash(grid, x, y);
-          flashed = 1;
+        if (maybe_flash(grid, x, y)) {
           (*flashes)++;
+          any_flash = 1;
         }
       }
     }
-  } while(flashed);
+  } while(any_flash);
 
   for (x=0; x<ROWS; x++) {
     for (y=0; y<COLS; y++) {
-      restore(grid, x, y);
+      maybe_restore(grid, x, y);
     }
   }
 }
