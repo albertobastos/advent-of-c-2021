@@ -171,11 +171,11 @@ void count_paths0(Cave* c, int caves_count, int* visited, int small_revisited, i
 
   int i;
   int visited_copy[caves_count];
-
   for (i=0; c->links[i] != NULL; i++) {
     copy_visited(caves_count, visited_copy, visited);
     count_paths0(c->links[i], caves_count, visited_copy, small_revisited, paths_count);
   }
+  free(visited_copy);
 }
 
 void count_paths(Cave* start, int caves_count, int* paths_count) {
@@ -183,4 +183,5 @@ void count_paths(Cave* start, int caves_count, int* paths_count) {
   memset(visited, 0, sizeof(visited));
   int small_revisited = 0;
   count_paths0(start, caves_count, visited, small_revisited, paths_count);
+  free(visited);
 }
