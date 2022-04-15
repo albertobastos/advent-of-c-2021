@@ -9,10 +9,12 @@ struct State {
   char* buff;
   int bitPos;
   int bitSize;
+  int sum_versions;
 };
 typedef struct State State;
 
 typedef unsigned long Chunk;
+int ChunkBitsize = sizeof(Chunk)*8;
 
 State* init_state(FILE* in) {
   char* buff;
@@ -60,8 +62,8 @@ Chunk read(State* state, int bits) {
   int hexAvailable;
   int hexBits;
 
-  if (bits > sizeof(Chunk)) {
-    printf("Cannot read more than %d>%ld bits at once.", bits, sizeof(Chunk));
+  if (bits > ChunkBitsize) {
+    printf("Cannot read more than %d>%d bits at once.", bits, ChunkBitsize);
     exit(1);
   }
 
@@ -81,6 +83,63 @@ Chunk read(State* state, int bits) {
   return chunk;
 }
 
+int remaining(State* state) {
+  return state->bitSize - state->bitPos;
+}
+
+void process(State*);
+void process_packet(State*);
+Chunk process_literal(State*);
+void process_operator(State*);
+
+Chunk process_literal(State* state) {
+  //printf("process_literal at %d\n", state->bitPos);
+  Chunk l = 0;
+  int groupBit;
+  do {
+    groupBit = read(state, 1);
+    l = (l << 4) | read(state, 4);
+  } while(groupBit == 1);
+  return l;
+}
+
+void process_operator(State* state) {
+  //printf("process_operator at %d\n", state->bitPos);
+  Chunk typeId = read(state, 1);
+  if (typeId == 0) {
+    int targetPos = state->bitPos + read(state, 15);
+    while (state->bitPos < targetPos)
+      process_packet(state);
+  } else if (typeId == 1) {
+    for (Chunk packets = read(state, 11); packets > 0; packets--)
+      process_packet(state);
+  } else {
+    printf("Unknown operator Type ID: %ld\n", typeId);
+    exit(1);
+  }
+}
+
+void process_packet(State* state) {
+  //printf("process_packet at %d\n", state->bitPos);
+  state->sum_versions += read(state, 3);
+  switch (read(state, 3)) {
+    case 4:
+      // literal
+      process_literal(state);
+      break;
+    default:
+      // operator
+      process_operator(state);
+      break;
+  }
+}
+
+void process(State* state) {
+  state->sum_versions = 0;
+  while (remaining(state) > 6)
+    process_packet(state);
+}
+
 int main(int argc, char** args) {
   FILE *fp = NULL;
   State* state = NULL;
@@ -98,14 +157,8 @@ int main(int argc, char** args) {
 
   state = init_state(fp);
 
-  while (state->bitPos < state->bitSize) {
-    //printf("%lu", read(state, 4));
-    //printf("%x", read(state, 4));
-    read(state, 1);
-  }
-  printf("\n");
-
-  printf("Answer: %d\n", -1);
+  process(state);
+  printf("Answer: %d\n", state->sum_versions);
 
   fclose(fp);
   exit(0);
