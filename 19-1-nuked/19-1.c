@@ -388,7 +388,7 @@ int main(int argc, char** args) {
     exit(1);
   }
 
-  args[1] = "19-1/sample.in";
+  //args[1] = "19-1/sample.in";
   if ((fp = fopen(args[1], "r")) == NULL) {
     printf("Cannot open file: %s\n", args[1]);
     exit(1);
