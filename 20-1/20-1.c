@@ -38,14 +38,34 @@ int** read_file(FILE* in, int* alg, int* size) {
   return img;
 }
 
-int** do_step(int** grid, int* size, int* alg) {
+int get_pixel(int** grid, int size, int x, int y, int* alg, int step) {
+  if (x < 0 || y < 0 || x >= size || y >= size) {
+    if (step == 0) return 0; // initial out of bounds are dark pixels
+    int odd = alg[0]; // result for odd steps
+    int even = odd == 0 ? alg[0] : alg[KEY_LENGTH-1]; // result for even steps
+    return step % 2 == 0 ? even : odd;
+  }
+  return grid[x][y];
+}
+
+int decode_pixel(int** grid, int size, int x, int y, int* alg, int step) {
+  int key = 0;
+  for (int i=x-1; i<=x+1; i++) {
+    for (int j=y-1; j<=y+1; j++) {
+      key = (key << 1) | get_pixel(grid, size, i, j, alg, step);
+    }
+  }
+  return alg[key];
+}
+
+int** do_step(int** grid, int* size, int* alg, int step) {
   int nsize = *size + 2;
   int** ngrid = malloc(sizeof(int*)*nsize);
 
   for (int i=0; i<nsize; i++) {
     ngrid[i] = malloc(sizeof(int)*nsize);
     for (int j=0; j<nsize; j++) {
-      ngrid[i][j] = 0; // TODO: calc based on grid and key
+      ngrid[i][j] = decode_pixel(grid, *size, i-1, j-1, alg, step);
     }
   }
 
@@ -85,16 +105,17 @@ int main(int argc, char** args) {
     exit(1);
   }
 
+  //args[1] = "20-1/sample.in";
   if ((fp = fopen(args[1], "r")) == NULL) {
     printf("Cannot open file: %s\n", args[1]);
     exit(1);
   }
 
   grid = read_file(fp, alg, &grid_size);
-  for (int i=1; i<=STEPS; i++) {
-    grid = do_step(grid, &grid_size, alg);
-    printf("After step %d (size: %d)\n", i, grid_size);
-    print_grid(grid, grid_size);
+  for (int i=0; i<STEPS; i++) {
+    grid = do_step(grid, &grid_size, alg, i);
+    //printf("After step %d (size: %d)\n", i+1, grid_size);
+    //print_grid(grid, grid_size);
   }
 
   printf("Answer: %d\n", count_lit(grid, grid_size));
